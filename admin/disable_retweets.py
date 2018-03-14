@@ -7,6 +7,8 @@ import requests
 from requests_oauthlib import OAuth1
 import os
 
+from lib import get_friends, create_api
+
 API_ENDPOINT = 'https://api.twitter.com/1.1/friendships/update.json'
 
 def parse_args():
@@ -14,11 +16,11 @@ def parse_args():
     parser.add_argument('screen_name')
     return parser.parse_args()
 
-def disable_retweets(screen_name, oauth):
+def disable_retweets(userid, oauth):
     """
     Disables retweets from a single user
     """
-    data = {'screen_name': screen_name, 
+    data = {'user_id': userid, 
             'retweets': False }
     resp = requests.post(API_ENDPOINT, data=data, auth=oauth)
     return resp
@@ -30,8 +32,11 @@ def main():
                    os.environ['TWITTER_CONSUMER_SECRET'],
                    os.environ['TWITTER_ACCESS_TOKEN'],
                    os.environ['TWITTER_ACCESS_SECRET'])
-    resp = disable_retweets(args.screen_name, oauth)
-    print(resp.text) 
+    api = create_api()
+    friends = get_friends(args.screen_name, api)
+    for f_id in friends:
+        resp = disable_retweets(f_id, oauth)
+        
 
 
 if __name__ == '__main__':
